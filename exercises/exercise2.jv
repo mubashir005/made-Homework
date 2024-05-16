@@ -1,0 +1,108 @@
+// SPDX-License-Identifier: AGPL-3.0-only
+
+// Exercise 2: Automated Data Pipeline
+
+// Learning goals:
+// - Understanding the creation of an automated data pipeline
+// - Implementing data cleaning and transformation steps
+// - Utilizing SQLite as a data storage solution
+
+// 1. This Jayvee model describes an automated data pipeline 
+// from a CSV source in the web 
+// to a SQLite database sink.
+
+pipeline TreesDataPipeline {
+
+    // 2. We describe the structure of the pipeline
+    // by connecting blocks via pipes. 
+
+    // 3. Syntax of a pipe
+    // connecting the block CsvSource
+    // with the block DropColumns.
+
+    // 4. The output of the preceding block is hereby used 
+    // as input for the succeeding block.
+
+
+    // 5. Pipes can be further chained, 
+    // leading to an overview of the pipeline.
+    TreesDataExtractor
+        -> TreesTextFileInterpreter
+        -> TreesCSVInterpreter
+        -> TreesDropColums;
+
+    TreesDropColums
+        -> TreesTableInterpreter
+        -> TreesDataLoader;
+
+    // 6. Below the pipes, we usually define the blocks 
+    // that are connected by the pipes.
+
+    // 7. Blocks instantiate a blocktype by using the 'oftype' keyword.
+    // The blocktype defines the available properties that the block
+    // can use to specify the intended behavior of the block 
+
+    
+    // 8. The CsvSource requires no input and produces a CSV file as output.
+    // This CSV file is then processed to remove unnecessary columns.
+
+    block  TreesDataExtractor oftype HttpExtractor {
+        url: "https://opendata.rhein-kreis-neuss.de/api/v2/catalog/datasets/stadt-neuss-herbstpflanzung-2023/exports/csv";
+    }
+
+    block TreesTextFileInterpreter oftype TextFileInterpreter { }
+
+    block TreesCSVInterpreter oftype CSVInterpreter {
+        delimiter: ';';
+    }
+    // 9. We then cast the types of the columns according to predefined types.
+    block TreesTableInterpreter oftype TableInterpreter {
+
+        header: true;
+        columns: [
+
+            "lfd_nr" oftype integer,
+            "stadtteil" oftype ValidCitys,
+            "standort" oftype text,
+            "baumart_botanisch" oftype text,
+            "baumart_deutsch" oftype text,
+            "id" oftype ValidIds,
+            "baumfamilie" oftype text,
+        ];
+    }
+
+    block TreesDropColums oftype ColumnDeleter {
+        delete: [column E ];
+    }
+  
+    // 10.  we load the cleaned and transformed data into a SQLite database.
+    block TreesDataLoader oftype SQLiteLoader {
+        table: "trees";
+        file: "./trees.sqlite";
+    }
+
+}
+  // 11. Next, we filter and keep only the rows that meet certain constraints.
+valuetype ValidCitys oftype text {
+    constraints: [
+        AllowedCity,
+    ];
+}
+// 12. We define constraints on the coordinates to ensure it is valid according to the schema.
+valuetype ValidIds oftype text {
+    constraints: [
+        AllowedIds,
+    ];
+}
+
+
+
+// 13.we ensures that stadtteil is one of the valid values.For e.g, Furth-Mitte, Furth-Süd, Furth-Nord.
+constraint AllowedCity on text:
+    value in ["Furth-Mitte","Furth-Süd","Furth-Nord"];
+
+
+// 14. We ensures that the coordinates are in the format of "x.x, y.y".
+constraint AllowedIds on text:
+    value matches /^\d{1,3}\.\d+, \d{1,3}\.\d+$/;
+
