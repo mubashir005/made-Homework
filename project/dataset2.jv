@@ -99,7 +99,7 @@ block ClimateChange2DataExtractor oftype HttpExtractor {
     // 8.  we load the cleaned and transformed data into a SQLite database.
     block CCtwoDataLoader oftype SQLiteLoader{
         table:"dataset2";
-        file:"./dataset2.sqlite";
+        file:"../data/dataset2.sqlite";
     }
    
 

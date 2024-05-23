@@ -50,7 +50,7 @@ block ClimateChange1DataExtractor oftype HttpExtractor {
     // 8.  we load the cleaned and transformed data into a SQLite database.
     block CCDataLoader oftype SQLiteLoader{
         table:"dataset1";
-        file:"./dataset1.sqlite";
+        file:"../data/dataset1.sqlite";
     }
    
 
