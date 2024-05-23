@@ -1,0 +1,57 @@
+// Exercise : ClimateChnage dataset1 Pipeline
+pipeline ClimateChange1{
+// 1. This Jayvee model describes an automated data pipeline 
+// from a CSV source in the web 
+// to a SQLite database sink.
+  // 2. We describe the structure of the pipeline
+    // by connecting blocks via pipes. 
+
+    // 3. Syntax of a pipe
+    // connecting the block CsvSource
+    // with the block DropColumns.
+
+    // 4. The output of the preceding block is hereby used 
+    // as input for the succeeding block.
+
+
+    // 5. Pipes can be further chained, 
+    // leading to an overview of the pipeline.
+ClimateChange1DataExtractor
+    -> CCTextFileInterpreter
+    -> CCCSVInterpreter
+    -> CCTableInterpreter 
+    -> CCDataLoader;
+    // 6. The CsvSource requires no input and produces a CSV file as output.
+    // This CSV file is then processed to remove unnecessary columns.
+block ClimateChange1DataExtractor oftype HttpExtractor {
+   url: "https://query.data.world/s/bxhv23ezqupfoqjoi67cl55i732zbz?dws=00000";
+ }
+
+ 
+ block CCTextFileInterpreter oftype TextFileInterpreter{} 
+
+ block CCCSVInterpreter oftype CSVInterpreter{
+        delimiter:",";
+    }
+    // 7. We then cast the types of the columns according to predefined types.
+ block CCTableInterpreter oftype TableInterpreter{
+        header: true;
+        columns:[
+            "dt" oftype text,
+            "AverageTemperature" oftype decimal,
+            "AverageTemperatureUncertainty" oftype decimal,
+            "City" oftype text,
+            "Country" oftype text,
+            "latitude" oftype text,
+            "longitude" oftype text
+        ];
+    
+    }
+    // 8.  we load the cleaned and transformed data into a SQLite database.
+    block CCDataLoader oftype SQLiteLoader{
+        table:"dataset1";
+        file:"./dataset1.sqlite";
+    }
+   
+
+}
