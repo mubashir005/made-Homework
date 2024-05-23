@@ -8,6 +8,7 @@ Climate Change impact on Planet Earth Tempreture
 
 <!-- Think about one main question you want to answer based on the data. -->
   1. Does Climate change play any role in rise of temprature of Planet Erath?
+  2. Does what type of ssources produces more CO2 per capita?
 
 ## Description
 
@@ -20,8 +21,12 @@ We are turning some of the data over to you so you can form your own view.
 <!-- Describe each datasources you plan to use in a section. Use the prefic "DatasourceX" where X is the id of the datasource. -->
 
 ### Datasource1: Climate Change: Earth Surface Temperature Data
-* Metadata URL:https://www.kaggle.com/datasets/berkeleyearth/climate-change-earth-surface-temperature-data?select=GlobalLandTemperaturesByCity.csv
-* Data URL:https://www.kaggle.com/datasets/berkeleyearth/climate-change-earth-surface-temperature-data?select=GlobalLandTemperaturesByCity.csv
+* Metadata URL:https://data.world/data-society/global-climate-change-data
+* Data URL:https://query.data.world/s/bxhv23ezqupfoqjoi67cl55i732zbz?dws=00000
+* Data Type: CSV
+### Datasource2: 2019/W22: CO2 Emissions per capita
+* Metadata URL:https://data.world/adamhelsinger/fossil-fuel-co-2-emissions/workspace/file?filename=Latest+Published+Global+Estimates+%281751-2013%29.xlsx
+* Data URL:https://query.data.world/s/x5sksfhbjl3h2xfswrbolreeaguqrg?dws=00000
 * Data Type: CSV
 
 Even more than with other data sets that Kaggle has featured, there’s a huge amount of data cleaning and preparation that goes into putting together a long-time study of climate trends. Early data was collected by technicians using mercury thermometers, where any variation in the visit time impacted measurements. In the 1940s, the construction of airports caused many weather stations to be moved. In the 1980s, there was a move to electronic thermometers that are said to have a cooling bias.
