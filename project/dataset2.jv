@@ -1,0 +1,106 @@
+// Exercise : ClimateChnage dataset1 Pipeline
+pipeline ClimateChange2{
+// 1. This Jayvee model describes an automated data pipeline 
+// from a CSV source in the web 
+// to a SQLite database sink.
+  // 2. We describe the structure of the pipeline
+    // by connecting blocks via pipes. 
+
+    // 3. Syntax of a pipe
+    // connecting the block CsvSource
+    // with the block DropColumns.
+
+    // 4. The output of the preceding block is hereby used 
+    // as input for the succeeding block.
+
+
+    // 5. Pipes can be further chained, 
+    // leading to an overview of the pipeline.
+ClimateChange2DataExtractor
+    -> CCtwoTextFileInterpreter
+    -> CCtwoCSVInterpreter
+    -> CCtwoTableInterpreter 
+    -> CCtwoDataLoader;
+    // 6. The CsvSource requires no input and produces a CSV file as output.
+    // This CSV file is then processed to remove unnecessary columns.
+block ClimateChange2DataExtractor oftype HttpExtractor {
+   url: "https://query.data.world/s/x5sksfhbjl3h2xfswrbolreeaguqrg?dws=00000";
+ }
+
+ 
+ block CCtwoTextFileInterpreter oftype TextFileInterpreter{} 
+
+ block CCtwoCSVInterpreter oftype CSVInterpreter{
+        delimiter:",";
+    }
+    // 7. We then cast the types of the columns according to predefined types.
+ block CCtwoTableInterpreter oftype TableInterpreter{
+        header: true;
+        columns:[
+            "Country Name" oftype text,
+            "Country Code" oftype text,
+            "1960" oftype decimal,
+            "1961" oftype decimal,
+            "1962" oftype decimal,
+            "1963" oftype decimal,
+            "1964" oftype decimal,
+            "1965" oftype decimal,
+            "1966" oftype decimal,
+            "1967" oftype decimal,
+            "1968" oftype decimal,
+            "1969" oftype decimal,
+            "1970" oftype decimal,
+            "1971" oftype decimal,
+            "1973" oftype decimal,
+            "1974" oftype decimal,
+            "1975" oftype decimal,
+            "1976" oftype decimal,
+            "1977" oftype decimal,
+            "1978" oftype decimal,
+            "1979" oftype decimal,
+            "1980" oftype decimal,
+            "1981" oftype decimal,
+            "1982" oftype decimal,
+            "1983" oftype decimal,
+            "1984" oftype decimal,
+            "1985" oftype decimal,
+            "1986" oftype decimal,
+            "1987" oftype decimal,
+            "1988" oftype decimal,
+            "1989" oftype decimal,
+            "1990" oftype decimal,
+            "1991" oftype decimal,
+            "1992" oftype decimal,
+            "1993" oftype decimal,
+            "1994" oftype decimal,
+            "1995" oftype decimal,
+            "1996" oftype decimal,
+            "1997" oftype decimal,
+            "1998" oftype decimal,
+            "1999" oftype decimal,
+            "2000" oftype decimal,
+            "2001" oftype decimal,
+            "2002" oftype decimal,
+            "2003" oftype decimal,
+            "2004" oftype decimal,
+            "2005" oftype decimal,
+            "2006" oftype decimal,
+            "2007" oftype decimal,
+            "2008" oftype decimal,
+            "2009" oftype decimal,
+            "2010" oftype decimal,
+            "2011" oftype decimal,
+            "2012" oftype decimal,
+            "2013" oftype decimal,
+            "2014" oftype decimal,
+        ];
+    
+    }
+    // 8.  we load the cleaned and transformed data into a SQLite database.
+    block CCtwoDataLoader oftype SQLiteLoader{
+        table:"dataset2";
+        file:"./dataset2.sqlite";
+    }
+   
+
+}
