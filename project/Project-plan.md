@@ -7,8 +7,9 @@ Climate Change impact on Planet Earth Tempreture
 ## Main Question
 
 <!-- Think about one main question you want to answer based on the data. -->
-  1. Does Climate change play any role in rise of temprature of Planet Erath?
-  2. Does what type of ssources produces more CO2 per capita?
+  1. How does the trend in CO2 emissions per capita correlate with changes in average global temperature over the years?
+  2. Does Climate change play any role in rise of temprature of Planet Erath?
+  3. Does what type of ssources produces more CO2 per capita?
 
 ## Description
 
