@@ -1,0 +1,117 @@
+// SPDX-License-Identifier: AGPL-3.0-only
+
+// Exercise 2: Automated Data Pipeline
+
+// Learning goals:
+// - Understanding the creation of an automated data pipeline
+// - Implementing data cleaning and transformation steps
+// - Utilizing SQLite as a data storage solution
+
+// 1. This Jayvee model describes an automated data pipeline 
+// from a CSV source in the web 
+// to a SQLite database sink.
+
+pipeline GoodsTransport {
+
+    // 2. We describe the structure of the pipeline
+    // by connecting blocks via pipes. 
+
+    // 3. Syntax of a pipe
+    // connecting the block CsvSource
+    // with the block DropColumns.
+
+    // 4. The output of the preceding block is hereby used 
+    // as input for the succeeding block.
+
+
+    // 5. Pipes can be further chained, 
+    // leading to an overview of the pipeline.
+    GTDataExtractor
+        -> GTTextFileInterpreter
+        -> GTCSVInterpreter
+        -> GTdeleteRows
+        -> GTDropColums
+        -> GTTableInterpreter
+        -> GTDataLoader;
+
+    // 6. Below the pipes, we usually define the blocks 
+    // that are connected by the pipes.
+
+    // 7. Blocks instantiate a blocktype by using the 'oftype' keyword.
+    // The blocktype defines the available properties that the block
+    // can use to specify the intended behavior of the block 
+
+    
+    // 8. The CsvSource requires no input and produces a CSV file as output.
+    // This CSV file is then processed to remove unnecessary columns.
+
+    block  GTDataExtractor oftype HttpExtractor {
+        url: "https://www-genesis.destatis.de/genesis/downloads/00/tables/46131-0014_00.csv";
+    }
+
+    block GTTextFileInterpreter oftype TextFileInterpreter {
+        encoding:"latin2";
+     }
+
+    block GTCSVInterpreter oftype CSVInterpreter {
+        delimiter: ';';
+    }
+// 9. We then Delete the rows according to Given Condition.
+    block GTdeleteRows oftype RowDeleter{
+        delete: [row 1, row 2,row 3,row 4,row 5, row 6,row 7,row 8];
+    }
+// 10. We then Drop the columns according to Given Condition.
+    block GTDropColums oftype ColumnDeleter{
+        delete: [column F,column G,column H,column I,column J,column K,column L,column M,column N,column O,
+        column P,column Q,column R,column S,column T,column U,column V,column W,column X,column Y,column Z,
+        column AA,column AB,column AC,column AD,column AE,column AF,column AG,column AH,column AI,column AJ,
+        column AK,column AL,column AM,column AN,column AO,column AP,column AQ,column AR,column AS];
+    } 
+    // 11. We then cast the types of the columns according to predefined types.
+    block GTTableInterpreter oftype TableInterpreter{
+        header: false;
+        columns:[
+            "year" oftype positiveInt,
+            "month" oftype MonthValidation,
+            "goods_id" oftype IDValidation,
+            "goods_name" oftype text,
+            "goods_source" oftype text,
+            "abroad" oftype positiveInt,
+            "total" oftype positiveInt,
+        ];
+    }
+
+    block  GTDataLoader oftype SQLiteLoader{
+        table:"goods";
+        file:"./goodsTransportedByTrain.sqlite";
+    }
+  // 12. Next, we filter and keep only the rows that meet certain constraints.
+    valuetype MonthValidation oftype text{
+        constraints:[
+            c_validMonth
+        ];
+    }
+
+
+    valuetype positiveInt oftype integer{
+        constraints: [
+            c_postivenum
+        ];
+    }
+
+    valuetype IDValidation oftype text {
+        constraints:[
+            c_goodsID
+        ];
+    }
+
+// 13.Next  We define constraints on the Months to ensure it is valid according to the schema.
+    constraint c_validMonth on text:
+    value in ["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"];
+// 14.Next  We define constraints on the positivenum to ensure it is valid according to the schema.
+    constraint c_postivenum on integer:
+    value >= 0;
+// 15.Next  We define constraints on the Ids to ensure it is valid according to the schema.
+    constraint c_goodsID on text:
+    value matches /NST7-[0-9A-Z]{3}/;
+}
