@@ -1,0 +1,131 @@
+// SPDX-License-Identifier: AGPL-3.0-only
+
+// Exercise 2: Automated Data Pipeline
+
+// Learning goals:
+// - Understanding the creation of an automated data pipeline
+// - Implementing data cleaning and transformation steps
+// - Utilizing SQLite as a data storage solution
+
+// 1. This Jayvee model describes an automated data pipeline 
+// from a CSV source in the web 
+// to a SQLite database sink.
+
+pipeline tempreturs {
+
+    // 2. We describe the structure of the pipeline
+    // by connecting blocks via pipes. 
+
+    // 3. Syntax of a pipe
+    // connecting the block CsvSource
+    // with the block DropColumns.
+
+    // 4. The output of the preceding block is hereby used 
+    // as input for the succeeding block.
+
+
+    // 5. Pipes can be further chained, 
+    // leading to an overview of the pipeline.
+    TempDataExtractor 
+        -> TempfileExtractor 
+        -> toText
+        -> TempCSVInterpreter
+        -> TempchangeHeaders
+        -> TempchangeHeaders2
+        -> TempTableInterpreter
+        -> TempCToFTransformer
+        -> TempCToFTransformer2
+        -> TempDataLoader;
+
+    // 6. Below the pipes, we usually define the blocks 
+    // that are connected by the pipes.
+
+    // 7. Blocks instantiate a blocktype by using the 'oftype' keyword.
+    // The blocktype defines the available properties that the block
+    // can use to specify the intended behavior of the block 
+
+    
+    
+
+    block  TempDataExtractor oftype GTFSExtractor {
+        url:"https://www.mowesta.com/data/measure/mowesta-dataset-20221107.zip";
+    }
+
+    block TempfileExtractor  oftype FilePicker {
+    path: "/data.csv";
+    }
+
+    block toText oftype TextFileInterpreter{
+    encoding: "utf8";
+    }
+// 8. The CsvSource requires no input and produces a CSV file as output.
+    // This CSV file is then processed to remove unnecessary columns.
+    block TempCSVInterpreter oftype CSVInterpreter {
+        delimiter: ';';
+    }
+// 9. Change the header of required rows.
+    block TempchangeHeaders oftype CellWriter {
+        at: range A1:E1;
+        write: ['id','producer','model','month','temperature'];
+    }
+// 9. Change the header of required rows.
+    block TempchangeHeaders2 oftype CellWriter {
+        at: cell J1;
+        write: ['battery_temperature'];
+    }
+
+
+// 10. We then cast the types of the columns according to predefined types.
+    block  TempTableInterpreter oftype TableInterpreter{
+        header: true;
+        columns:[
+            "id" oftype positiveInt,
+            "producer" oftype text,
+            "model" oftype text,
+            "month" oftype integer,
+            "temperature" oftype decimal,
+            "battery_temperature" oftype decimal
+        ];
+    
+    }
+    // 11.CelsiusToFahrenheit unit transformation.
+    block TempCToFTransformer oftype TableTransformer {
+        inputColumns: ['temperature'];
+        outputColumn: 'temperature';
+        use: CelsiusToFahrenheit;
+    }
+// 12. CelsiusToFahrenheit unit transformation.
+    block TempCToFTransformer2 oftype TableTransformer {
+        inputColumns: ['battery_temperature'];
+        outputColumn: 'battery_temperature';
+        use: CelsiusToFahrenheit;
+    }
+
+// 12.CelsiusToFahrenheit unit conversion formula.
+
+    transform CelsiusToFahrenheit {
+    from Celsius oftype decimal;
+    to Fahrenheit oftype decimal;
+
+   Fahrenheit: (Celsius * 9/5) + 32;
+ }
+
+    block TempDataLoader oftype SQLiteLoader{
+        table:"temperatures";
+        file:"./temperatures.sqlite";
+    }
+
+
+    valuetype positiveInt oftype integer{
+        constraints: [
+            c_postivenum
+        ];
+    }
+// 15.Next  We define constraints on the positive numbers to ensure it is valid according to the schema.
+    constraint c_postivenum on integer:
+    value >= 0;   
+
+
+
+
+}
