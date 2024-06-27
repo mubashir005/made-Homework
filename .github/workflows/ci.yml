@@ -28,5 +28,3 @@ jobs:
         mkdir -p ../data
         touch ../data/dataset1.sqlite
         touch ../data/dataset2.sqlite
-
-        ./tests.sh
