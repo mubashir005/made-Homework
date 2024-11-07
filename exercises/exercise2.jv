@@ -1,42 +1,42 @@
-pipeline TreePlantingDataPipeline {
+pipeline TreePlantingPipeline {
 
-    FetchDataFromURL -> InitialTextProcessing;
+    FetchData -> ProcessText;
     
-    InitialTextProcessing
-        -> ParseCSVFormat
-        -> DefineTableStructure
-        -> StoreInDatabase;
+    ProcessText
+        -> ParseCSV
+        -> SetupTable
+        -> SaveToDatabase;
 
-    block FetchDataFromURL oftype HttpExtractor {
-        // URL for accessing the latest tree planting data CSV
-        url: "https://opendata.rhein-kreis-neuss.de/api/v2/catalog/datasets/stadt-neuss-herbstpflanzung-2023/exports/csv";
+    block FetchData oftype HttpExtractor {
+        // Direct URL for tree planting data
+        url "https://opendata.rhein-kreis-neuss.de/api/v2/catalog/datasets/stadt-neuss-herbstpflanzung-2023/exports/csv";
     }
 
-    block InitialTextProcessing oftype TextFileInterpreter { }
+    block ProcessText oftype TextFileInterpreter { }
 
-    block ParseCSVFormat oftype CSVInterpreter {
-        //the separator for parsing CSV content
-        delimiter: ';';
+    block ParseCSV oftype CSVInterpreter {
+        // Specify the CSV delimiter
+        delimiter ',';
     }
 
-    block DefineTableStructure oftype TableInterpreter {
-        
-        header: true;
-        columns: [
-            { name: "id", type: "TEXT", pattern: "^\\d{1,3}\\.\\d+,\\s\\d{1,3}\\.\\d+$" },
-            { name: "standortnr", type: "BIGINT" },
-            { name: "pflanzjahr", type: "BIGINT", min: 2023 },
-            { name: "baumart_wissenschaftlich", type: "TEXT" },
-            { name: "stadtteil", type: "TEXT", starts_with: "Vogelsang" },
-            { name: "strasse", type: "TEXT" },
-            { name: "hausnummer", type: "TEXT" },
-            { name: "pflanzart", type: "TEXT" }
+    block SetupTable oftype TableInterpreter {
+        // Enable header row and define columns with types and constraints
+        header true;
+        columns [
+            "id" oftype TEXT match "^\\d{1,3}\\.\\d+,\\s\\d{1,3}\\.\\d+$";
+            "standortnr" oftype BIGINT;
+            "pflanzjahr" oftype BIGINT min 2023;
+            "baumart_wissenschaftlich" oftype TEXT;
+            "stadtteil" oftype TEXT startswith "Vogelsang";
+            "strasse" oftype TEXT;
+            "hausnummer" oftype TEXT;
+            "pflanzart" oftype TEXT
         ];
     }
 
-    block StoreInDatabase oftype SQLiteLoader {
-        // output database and table settings
-        table: "trees";
-        file: "trees.sqlite";
+    block SaveToDatabase oftype SQLiteLoader {
+        // Output database file and table name
+        table "trees";
+        file "trees.sqlite";
     }
 }
