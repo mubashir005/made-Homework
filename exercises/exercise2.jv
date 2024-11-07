@@ -1,42 +1,52 @@
-pipeline TreePlantingPipeline {
 
-    FetchData -> ProcessText;
-    
-    ProcessText
-        -> ParseCSV
-        -> SetupTable
-        -> SaveToDatabase;
 
-    block FetchData oftype HttpExtractor {
-        // Direct URL for tree planting data
-        url "https://opendata.rhein-kreis-neuss.de/api/v2/catalog/datasets/stadt-neuss-herbstpflanzung-2023/exports/csv";
+pipeline TreesDataPipeline {
+
+    TreesDataExtractor
+        -> TreesTextFileInterpreter
+        -> TreesCSVInterpreter
+        -> TreesDropColumns;
+
+    TreesDropColumns
+        -> TreesTableInterpreter
+        -> TreesDataLoader;
+
+    block TreesDataExtractor oftype HttpExtractor {
+        url: "https://opendata.rhein-kreis-neuss.de/api/v2/catalog/datasets/stadt-neuss-herbstpflanzung-2023/exports/csv";
     }
 
-    block ProcessText oftype TextFileInterpreter { }
+    block TreesTextFileInterpreter oftype TextFileInterpreter { }
 
-    block ParseCSV oftype CSVInterpreter {
-        // Specify the CSV delimiter
-        delimiter ',';
+    block TreesCSVInterpreter oftype CSVInterpreter {
+        delimiter: ';';
     }
 
-    block SetupTable oftype TableInterpreter {
-        // Enable header row and define columns with types and constraints
-        header true;
-        columns [
-            "id" oftype TEXT match "^\\d{1,3}\\.\\d+,\\s\\d{1,3}\\.\\d+$";
-            "standortnr" oftype BIGINT;
-            "pflanzjahr" oftype BIGINT min 2023;
-            "baumart_wissenschaftlich" oftype TEXT;
-            "stadtteil" oftype TEXT startswith "Vogelsang";
-            "strasse" oftype TEXT;
-            "hausnummer" oftype TEXT;
-            "pflanzart" oftype TEXT
+    block TreesTableInterpreter oftype TableInterpreter {
+        header: true;
+        columns: [
+            "id" oftype text {
+                pattern: /^\d{1,3}\.\d+, \d{1,3}\.\d+$/
+            },
+            "standortnr" oftype integer,
+            "pflanzjahr" oftype integer {
+                min: 2023
+            },
+            "baumart_wissenschaftlich" oftype text,
+            "stadtteil" oftype text {
+                pattern: /^Vogelsang.*/
+            },
+            "strasse" oftype text,
+            "hausnummer" oftype text,
+            "pflanzart" oftype text
         ];
     }
 
-    block SaveToDatabase oftype SQLiteLoader {
-        // Output database file and table name
-        table "trees";
-        file "trees.sqlite";
+    block TreesDropColumns oftype ColumnDeleter {
+        delete: ["baumart_deutsch"];
+    }
+  
+    block TreesDataLoader oftype SQLiteLoader {
+        table: "trees";
+        file: "./trees.sqlite";
     }
 }
