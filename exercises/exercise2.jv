@@ -36,7 +36,7 @@ pipeline TreePlantingDataFlow {
     }
 
     block ColumnFilter oftype ColumnDeleter {
-        delete: ["baumart_deutsch"];
+        delete: [column E ];
     }
   
     block DatabaseSaver oftype SQLiteLoader {
