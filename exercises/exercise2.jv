@@ -40,8 +40,8 @@ pipeline TreePlantingDataFlow {
     }
   
     block DatabaseSaver oftype SQLiteLoader {
-        table: "tree_records";
-        file: "./tree_database.sqlite";
+        table: "trees";
+        file: "./trees.sqlite";
     }
 }
 
