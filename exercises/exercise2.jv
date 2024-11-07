@@ -1,0 +1,43 @@
+pipeline TreePlantingDataPipeline {
+
+    FetchDataFromURL -> InitialTextProcessing;
+    
+    InitialTextProcessing
+        -> ParseCSVFormat
+        -> DefineTableStructure
+        -> StoreInDatabase;
+
+    block FetchDataFromURL oftype HttpExtractor {
+        // URL for accessing the latest tree planting data CSV
+        url: "https://opendata.rhein-kreis-neuss.de/api/v2/catalog/datasets/stadt-neuss-herbstpflanzung-2023/exports/csv";
+    }
+
+    block InitialTextProcessing oftype TextFileInterpreter { }
+
+    block ParseCSVFormat oftype CSVInterpreter {
+        // the separator for parsing CSV content
+        delimiter: ';';
+    }
+
+    block DefineTableStructure oftype TableInterpreter {
+        // Enable CSV header usage and define target columns with constraints
+        header: true;
+        columns: [
+            "id" oftype text pattern "^\\d{1,3}\\.\\d+,\\s\\d{1,3}\\.\\d+$",
+            "standortnr" oftype integer,
+            "pflanzjahr" oftype integer min 2023,
+            "baumart_wissenschaftlich" oftype text,
+            "stadtteil" oftype text filter "startswith('Vogelsang')",
+            "strasse" oftype text,
+            "hausnummer" oftype text,
+            "pflanzart" oftype text
+        ];
+        // Exclude 'baumart_deutsch' column by leaving it out
+    }
+
+    block StoreInDatabase oftype SQLiteLoader {
+        //output database and table settings
+        table: "trees";
+        file: "trees.sqlite";
+    }
+}
