@@ -1,52 +1,64 @@
+// SPDX-License-Identifier: AGPL-3.0-only
 
+pipeline TreePlantingDataFlow {
 
-pipeline TreesDataPipeline {
+    DataSourceExtractor
+        -> RawFileInterpreter
+        -> CsvDataParser
+        -> ColumnFilter;
 
-    TreesDataExtractor
-        -> TreesTextFileInterpreter
-        -> TreesCSVInterpreter
-        -> TreesDropColumns;
+    ColumnFilter
+        -> SchemaDefinition
+        -> DatabaseSaver;
 
-    TreesDropColumns
-        -> TreesTableInterpreter
-        -> TreesDataLoader;
-
-    block TreesDataExtractor oftype HttpExtractor {
+    block DataSourceExtractor oftype HttpExtractor {
         url: "https://opendata.rhein-kreis-neuss.de/api/v2/catalog/datasets/stadt-neuss-herbstpflanzung-2023/exports/csv";
     }
 
-    block TreesTextFileInterpreter oftype TextFileInterpreter { }
+    block RawFileInterpreter oftype TextFileInterpreter { }
 
-    block TreesCSVInterpreter oftype CSVInterpreter {
+    block CsvDataParser oftype CSVInterpreter {
         delimiter: ';';
     }
 
-    block TreesTableInterpreter oftype TableInterpreter {
+    block SchemaDefinition oftype TableInterpreter {
         header: true;
         columns: [
-            "id" oftype text {
-                pattern: /^\d{1,3}\.\d+, \d{1,3}\.\d+$/
-            },
+            "id" oftype GeoID,
             "standortnr" oftype integer,
-            "pflanzjahr" oftype integer {
-                min: 2023
-            },
+            "pflanzjahr" oftype integer,
             "baumart_wissenschaftlich" oftype text,
-            "stadtteil" oftype text {
-                pattern: /^Vogelsang.*/
-            },
+            "stadtteil" oftype VogelsangArea,
             "strasse" oftype text,
             "hausnummer" oftype text,
             "pflanzart" oftype text
         ];
     }
 
-    block TreesDropColumns oftype ColumnDeleter {
+    block ColumnFilter oftype ColumnDeleter {
         delete: ["baumart_deutsch"];
     }
   
-    block TreesDataLoader oftype SQLiteLoader {
-        table: "trees";
-        file: "./trees.sqlite";
+    block DatabaseSaver oftype SQLiteLoader {
+        table: "tree_records";
+        file: "./tree_database.sqlite";
     }
 }
+
+valuetype VogelsangArea oftype text {
+    constraints: [
+        MustStartWithVogelsang
+    ];
+}
+
+valuetype GeoID oftype text {
+    constraints: [
+        CoordinateFormat
+    ];
+}
+
+constraint CoordinateFormat on text:
+    value matches /^\d{1,3}\.\d+, \d{1,3}\.\d+$/;
+
+constraint MustStartWithVogelsang on text:
+    value matches /^Vogelsang.*/;
