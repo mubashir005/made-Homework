@@ -21,6 +21,15 @@ if not os.path.exists(climate_csv_path):
     with open(climate_csv_path, "wb") as file:
         file.write(response.content)
 
+# Download Agricultural Data if not already downloaded
+if not os.path.exists(agri_csv_path):
+    print("Downloading Agricultural Data...")
+    agri_url = "https://sourceforge.net/projects/faostat-data-en-11-13-2024-csv/files/FAOSTAT_data_en_11-13-2024.csv/download"
+    response = requests.get(agri_url, allow_redirects=True)
+    with open(agri_csv_path, "wb") as file:
+        file.write(response.content)
+
+
 # Load Datasets
 print("Loading Climate Data...")
 climate_data = pd.read_csv(climate_csv_path)
