@@ -1,18 +1,18 @@
-// SPDX-License-Identifier: AGPL-3.0-only
+
 
 pipeline SheetPipeline {
 
     SheetExtractor
         -> SheetExcelInterpreter
-        -> SheetSheetPicker
+        -> SheetPicker
         -> SheetHeaderWriter
         -> SheetRowDeleter
         -> SheetTableInterpreter1
-        -> SaveGDPTableLoader;
+        -> GDPTableLoader;
 
     SheetRowDeleter
         -> SheetTableInterpreter2
-        -> SaveBondIssuanceTableLoader;
+        -> BondIssuanceTableLoader;
 
     block SheetExtractor oftype HttpExtractor {
         url: "https://thedocs.worldbank.org/en/doc/7d852628d96b9411d43e5d36d5dff941-0050062022/original/Graphs-Chapter-5-02082022.xlsx";
@@ -20,7 +20,7 @@ pipeline SheetPipeline {
 
     block SheetExcelInterpreter oftype XLSXInterpreter { }
 
-    block SheetSheetPicker oftype SheetPicker {
+    block SheetPicker oftype SheetPicker {
         sheetName: "Figure S5.1.2";
     }
 
@@ -52,18 +52,18 @@ pipeline SheetPipeline {
         header: true;
         columns: [
             "Country Code" oftype CountryCodeAlpha3,
-            "Bond Issuance Share" oftype rangeInt
+            "Bond Issuance Share" oftype Bond_val_range
         ];
     }
 
-    block SaveGDPTableLoader oftype SQLiteLoader {
+    block GDPTableLoader oftype SQLiteLoader {
         table: "gdpPerCapita";
         file: "./country-stats.sqlite";
         dropTable: true;
         
     }
 
-    block SaveBondIssuanceTableLoader oftype SQLiteLoader {
+    block BondIssuanceTableLoader oftype SQLiteLoader {
         table: "bondIssuance";
         file: "./country-stats.sqlite";
         dropTable: false;
@@ -72,7 +72,7 @@ pipeline SheetPipeline {
 
 
 
-   valuetype rangeInt oftype decimal{
+   valuetype Bond_val_range oftype decimal{
         constraints: [
             range_postivenum
         ];
