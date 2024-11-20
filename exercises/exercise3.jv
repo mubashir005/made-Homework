@@ -7,10 +7,11 @@ pipeline SheetPipeline {
         -> SheetSheetPicker
         -> SheetHeaderWriter
         -> SheetRowDeleter
-        -> SheetTableInterpreter
+        -> SheetTableInterpreter1
         -> SaveGDPTableLoader;
-
-    SheetTableInterpreter
+        
+    SheetRowDeleter
+        -> SheetTableInterpreter2
         -> SaveBondIssuanceTableLoader;
 
     block SheetExtractor oftype HttpExtractor {
@@ -35,29 +36,33 @@ pipeline SheetPipeline {
 
     block SheetRowDeleter oftype RowDeleter {
         delete: [
-            row 17,
+            row 1,
             row 21,
-            row 28,
-            row 42,
-            row 44,
-            row 45
+            row 42
         ];
     }
 
-    block SheetTableInterpreter oftype TableInterpreter {
+    block SheetTableInterpreter1 oftype TableInterpreter {
         header: true;
         columns: [
             "Country Code" oftype CountryCodeAlpha3,
-            "Economy" oftype text,
-            "GDP per Capita" oftype decimal,
             "Bond Issuance Share" oftype decimal
+        ];
+    }
+
+    block SheetTableInterpreter2 oftype TableInterpreter {
+        header: true;
+        columns: [
+            "Country Code" oftype CountryCodeAlpha3,
+            "GDP per Capita" oftype decimal
         ];
     }
 
     block SaveGDPTableLoader oftype SQLiteLoader {
         table: "gdpPerCapita";
         file: "./country-stats.sqlite";
-        dropTable: false;
+        dropTable: true;
+        
     }
 
     block SaveBondIssuanceTableLoader oftype SQLiteLoader {
