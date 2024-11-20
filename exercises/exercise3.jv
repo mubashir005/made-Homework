@@ -85,10 +85,10 @@ pipeline SheetPipeline {
 
 valuetype PositiveGDPDecimal oftype decimal {
     constraints: [
-        c_validGDPPerCapita
+        validGDPPerCapita
     ];
 }
 
-constraint c_validGDPPerCapita on decimal:
+constraint validGDPPerCapita on decimal:
     value > 0;
 
