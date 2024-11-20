@@ -36,13 +36,7 @@ pipeline SheetPipeline {
 
     block SheetRowDeleter oftype RowDeleter {
         delete: [
-            row 1,
-            row 17,
-            row 21,
-            row 28,
-            row 42,
-            row 44,
-            row 45
+            row 1
         ];
     }
 
@@ -50,7 +44,7 @@ pipeline SheetPipeline {
         header: true;
         columns: [
             "Country Code" oftype CountryCodeAlpha3,
-            "Bond Issuance Share" oftype decimal
+            "GDP per Capita" oftype PositiveGDPDecimal
         ];
     }
 
@@ -58,7 +52,7 @@ pipeline SheetPipeline {
         header: true;
         columns: [
             "Country Code" oftype CountryCodeAlpha3,
-            "GDP per Capita" oftype decimal
+            "Bond Issuance Share" oftype rangeInt
         ];
     }
 
@@ -74,6 +68,27 @@ pipeline SheetPipeline {
         file: "./country-stats.sqlite";
         dropTable: false;
     }
+
+
+
+
+   valuetype rangeInt oftype decimal{
+        constraints: [
+            range_postivenum
+        ];
+    }
+
+    constraint range_postivenum on decimal:
+    value >= 0 and value <= 1;  
 }
 
+
+valuetype PositiveGDPDecimal oftype decimal {
+    constraints: [
+        c_validGDPPerCapita
+    ];
+}
+
+constraint c_validGDPPerCapita on decimal:
+    value > 0;
 
