@@ -1,0 +1,99 @@
+
+
+pipeline zipfilePipeline {
+
+    zipdataExtractor
+        -> zipfileExtractor 
+        -> zipfileinterpreter
+        -> CSVfileInterpreter
+        -> fileHeaderWriterRange
+        -> SingalfileHeaderWriter
+        -> fileTableInterpreter
+        -> temp_C_to_F_G1
+        -> temp_C_to_F_J1
+        -> TableLoader;
+
+
+    block zipdataExtractor oftype GTFSExtractor {
+        url: "https://www.mowesta.com/data/measure/mowesta-dataset-20221107.zip";
+    }
+
+    block zipfileExtractor oftype FilePicker{
+        path:"/data.csv";
+    }
+    
+    block zipfileinterpreter oftype TextFileInterpreter{
+        encoding: "utf8";
+    }
+
+    block CSVfileInterpreter oftype CSVInterpreter{
+        delimiter:';';
+    }
+
+
+    block fileHeaderWriterRange oftype CellWriter {
+        at: range A1:E1;
+        write: [
+            'id',
+            'producer',
+            'model',
+            'month',
+            'temperature'
+            
+        ];
+    }
+
+    block SingalfileHeaderWriter oftype CellWriter {
+        at: cell J1;
+        write:['battery_temperature'];
+    }
+
+
+    block fileTableInterpreter oftype TableInterpreter {
+        header: true;
+        columns: [
+
+            "id" oftype validid,
+            "producer" oftype text,
+            "model" oftype text,
+            "month" oftype integer,
+            "temperature" oftype decimal,
+            "battery_temperature" oftype decimal
+        ];
+    }
+
+    transform temp_C_to_F {
+    from Celsius oftype decimal;
+    to Fahrenheit oftype decimal;
+
+   Fahrenheit: (Celsius * 9/5) + 32;
+ }
+
+    block temp_C_to_F_G1 oftype TableTransformer{
+        inputColumns: ['temperature'];
+        outputColumn: 'temperature';
+        uses: temp_C_to_F;
+    }
+
+    block temp_C_to_F_J1 oftype TableTransformer{
+        inputColumns: ['battery_temperature'];
+        outputColumn: 'battery_temperature';
+        uses: temp_C_to_F;
+    }
+
+    block TableLoader oftype SQLiteLoader{
+    table:"temperatures";
+    file:"./temperatures.sqlite";
+}
+    valuetype validid oftype integer{
+        constraints: [
+            greaterthan0
+        ];
+    }
+
+    constraint greaterthan0 on integer:
+    value >= 0;  
+ 
+}
+
+
