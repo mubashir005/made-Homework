@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  run-tests:
+  Pipeline_tests:
     runs-on: ubuntu-latest
 
     steps:
@@ -17,7 +17,7 @@ jobs:
       run: |
         sudo apt-get update
 
-    - name: Execute tests
+    - name: Running_tests
       run: |
         # ./project/tests.sh
 
