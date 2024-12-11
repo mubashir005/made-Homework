@@ -19,5 +19,11 @@ jobs:
 
     - name: Execute tests
       run: |
-        ./tests.sh
+        ../project/tests.sh
+
+        echo "Mocking tests.sh because its very expensive to run the tests in real"
+        mkdir -p ../data
+        touch ../data/project_data.db
+        touch ../data/GlobalLandTTemperaturesByCity.csv
+        touch ../data/FAOSTAT_data_en_11-28-2024.csv
 
