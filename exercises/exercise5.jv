@@ -1,0 +1,76 @@
+pipeline GTFSdata {
+
+    GTFSdataExtractor
+        ->GTFSfilePicker
+        ->GTFSfileinterpreter
+        ->GTFSCSVinterpreter
+        ->DropRow
+        ->DropColoums
+        ->TabelInterpreter
+        ->DataLoader;
+  
+    block GTFSdataExtractor oftype GTFSExtractor {
+        url:"https://gtfs.rhoenenergie-bus.de/GTFS.zip";
+    }
+
+    block GTFSfilePicker oftype FilePicker {
+        path: "/stops.txt";
+    }
+
+    block GTFSfileinterpreter oftype TextFileInterpreter{
+        encoding: "utf8";
+    }
+
+    block GTFSCSVinterpreter oftype CSVInterpreter{
+        delimiter:",";
+        enclosing:'"';
+    }
+
+    block DropRow oftype RowDeleter{
+        delete: [row 1];
+    }
+
+    block DropColoums oftype ColumnDeleter{
+        delete: [column B, column D,column H, column I,column J, column K,column L];
+    }
+
+    block TabelInterpreter oftype TableInterpreter{
+        header: false;
+        columns:[
+            "stop_id" oftype integer,
+            "stop_name" oftype text,
+            "stop_lat" oftype geographic_range,
+            "stop_lon" oftype geographic_range,
+            "zone_id" oftype Zone_range
+        ];
+    } 
+
+
+
+    valuetype Zone_range oftype integer {
+        constraints:[
+            Zone_ranges
+        ];
+    }
+
+    constraint Zone_ranges on integer:
+    value == 1925;
+
+    valuetype geographic_range oftype decimal {
+        constraints:[
+            geographic
+        ];
+    }
+    constraint geographic oftype RangeConstraint {
+    lowerBound: -90;
+    lowerBoundInclusive: true;
+    upperBound: 90;
+    upperBoundInclusive: true;
+    }
+    
+    block DataLoader oftype SQLiteLoader{
+        table:"stops";
+        file:"./gtfs.sqlite";
+    }
+
+}
